@@ -1,0 +1,23 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Local Setting Files 
+settings_local.py
+.env
+.env.local
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Media Upload
+media/
+
+# Collectstatic (generated files)
+staticfiles/
+
+# OS Trash
+.DS_Store
+Thumbs.db
