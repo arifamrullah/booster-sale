@@ -1,11 +1,8 @@
 from django.db import models
 from .category import Category
 
-def product_main_image_path(instance, filename):
-    return f"products/main/product_{instance.id}/{filename}"
-
 class Product(models.Model):
-    image = models.ImageField(upload_to=product_main_image_path)
+    sku = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=300)
     category = models.ForeignKey(
         Category,
@@ -13,10 +10,10 @@ class Product(models.Model):
         related_name='products'
     )
     description = models.TextField()
-    price = models.DecimalField(max_digits=12, decimal_places=2)
-    stock = models.PositiveIntegerField(default=0)
-    weight = models.DecimalField(max_digits=8, decimal_places=2)
-    sku = models.CharField(max_length=100, unique=True)
+    has_variant = models.BooleanField(default=False)
+    price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    stock = models.PositiveIntegerField(default=0, null=True, blank=True)
+    weight = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -27,3 +24,14 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if not self.has_variant:
+            if self.price is None:
+                raise ValidationError({'price': "Price Required"})
+            if self.stock is None:
+                raise ValidationError({'stock': "Stock Required"})
+            if self.weight is None:
+                raise ValidationError({'weight': "Weight Required"})

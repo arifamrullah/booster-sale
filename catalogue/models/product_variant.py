@@ -7,7 +7,7 @@ from .color import Color
 def product_variant_image_path(instance, filename):
     return f"products/variant/product_{instance.id}/{filename}"
 
-class ProductVariant(models.model):
+class ProductVariant(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
@@ -53,7 +53,7 @@ class ProductVariant(models.model):
     )
     weight = models.DecimalField(max_digits=8, decimal_places=2)
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_add_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -68,3 +68,9 @@ class ProductVariant(models.model):
 
     def __str__(self):
         return f"{self.product} + {self.color} + {self.size}"
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if not self.product.has_variant:
+            raise ValidationError("This product doesn't have variants")
