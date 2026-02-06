@@ -6,7 +6,7 @@ class Size(models.Model):
 
     class Meta:
         db_table = 'sizes'
-        ordering = ['label']
+        ordering = ['code']
 
     def __str__(self):
-        return self.label
+        return f"{self.code} | {self.label}"

@@ -1,0 +1,7 @@
+<h1>{{ product.name }}</h1>
+<p>SKU: {{ product.sku }}</p>
+<p>Price: {{ product.price }}</p>
+<p>Stock: {{ product.stock }}</p>
+<textarea rows="10" cols="50">{{ product.description }}</textarea>
+<br/><br/>
+<a href="{% url 'products:list' %}">Back</a>
