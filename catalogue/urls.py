@@ -9,4 +9,5 @@ urlpatterns = [
     path('<int:pk>/', views.product_detail, name='detail'),
     path('<int:pk>/edit/', views.product_update, name='update'),
     path('<int:pk>/delete/', views.product_delete, name='delete'),
+    path('variant-empty-form/', views.variant_empty_form, name='variant_empty_form'),
 ]

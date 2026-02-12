@@ -1,0 +1,10 @@
+<div class="variant-form">
+    {{ form.as_p }}
+    <button
+        type="button"
+        hx-get="#"
+        hx-on="click: this.closest('.variant-form').remove();
+            document.getElementById('id_variants-TOTAL_FORMS').value--;">
+        Remove
+    </button>
+</div>

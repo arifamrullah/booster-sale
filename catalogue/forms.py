@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import inlineformset_factory
 from .models.category import Category
 from .models.product import Product
 from .models.product_image import ProductImage
@@ -15,3 +16,22 @@ class ProductForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['category'].queryset = Category.objects.filter(parent__isnull=False)
+
+class ProductVariantForm(forms.ModelForm):
+    class Meta:
+        model = ProductVariant
+        fields = ['sku', 'price', 'stock']
+
+    def clean_sku(self):
+        sku = self.cleaned_data['sku']
+        if not sku:
+            raise forms.ValidationError('SKU wajib diisi')
+        return sku
+
+ProductVariantFormSet = inlineformset_factory(
+    Product,
+    ProductVariant,
+    form = ProductVariantForm,
+    extra=1,
+    can_delete=False
+)
