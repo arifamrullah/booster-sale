@@ -9,4 +9,4 @@ class Size(models.Model):
         ordering = ['code']
 
     def __str__(self):
-        return f"{self.code} | {self.label}"
+        return self.code

@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from .category import Category
 
 class Product(models.Model):
@@ -26,8 +27,6 @@ class Product(models.Model):
         return self.name
     
     def clean(self):
-        from django.core.exceptions import ValidationError
-
         if not self.has_variant:
             if self.price is None:
                 raise ValidationError({'price': "Price Required"})

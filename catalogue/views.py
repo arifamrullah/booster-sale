@@ -9,6 +9,21 @@ from .models.size import Size
 from .models.product_variant import ProductVariant
 from .forms import ProductForm, ProductVariantForm, ProductVariantFormSet
 
+def toggle_variant_section(request):
+    has_variant = request.GET.get('has_variant') == 'on'
+
+    if has_variant:
+        formset = ProductVariantFormSet(prefix='variants')
+
+        variant_html = render_to_string(
+            'products/partials/variant_section.html',
+            {'variant_formset': formset}
+        )
+
+        return HttpResponse(variant_html)
+    
+    return HttpResponse('')
+
 def variant_empty_form(request):
     formset = ProductVariantFormSet(prefix='variants')
     empty_form = formset.empty_form
@@ -30,10 +45,15 @@ def product_create(request):
         variant_formset = ProductVariantFormSet(request.POST)
 
         if product_form.is_valid() and variant_formset.is_valid():
-            product = product_form.save()
+            product = product_form.save(commit=False)
+
+            # inject to formset
             variant_formset.instance = product
-            variant_formset.save()
-            return redirect('products:list')
+
+            if variant_formset.is_valid():
+                product.save()
+                variant_formset.save()
+                return redirect('products:list')
     else:
         product_form = ProductForm()
         variant_formset = ProductVariantFormSet()

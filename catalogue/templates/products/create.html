@@ -7,22 +7,12 @@
   <h3>Product</h3>
   {{ product_form.as_p }}
 
-  <h3>Variants</h3>
-
-  <div id="variant-container">
-    {{ variant_formset.management_form }}
+  <div id="variant-section"
+      hx-trigger="change from:#id_has_variant"
+      hx-get="{% url 'products:toggle_variant_section' %}"
+      hx-target="#variant-section"
+      hx-include="#id_has_variant">
   </div>
 
-  <button
-    type="button"
-    hx-get="{% url 'products:variant_empty_form' %}"
-    hx-target="#variant-container"
-    hx-swap="beforeend"
-    hx-on="htmx:afterRequest:
-      document.getElementById('id_variants-TOTAL_FORMS').value++">
-    + Add Variant
-  </button>
-  
-  <br><br>
   <button type="submit">Save</button>
 </form>

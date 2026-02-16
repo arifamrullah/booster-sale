@@ -1,0 +1,19 @@
+<h3>Variants</h3>
+
+{{ variant_formset.management_form }}
+
+<div id="variant-container">
+    {% for form in variant_formset %}
+        {% include "products/partials/variant_form.html" %}
+    {% endfor %}
+</div>
+
+<button
+    type="button"
+    hx-get="{% url 'products:variant_empty_form' %}"
+    hx-target="#variant-container"
+    hx-swap="beforeend"
+    hx-on="htmx:afterRequest:
+        document.getElementById('id_variants-TOTAL_FORMS').value++">
+    + Add Variant
+</button>
