@@ -5,7 +5,52 @@
   {% csrf_token %}
 
   <h3>Product</h3>
-  {{ product_form.as_p }}
+
+  <div id="basic-info">
+    <p>
+      {{ product_form.sku.label_tag }}
+      {{ product_form.sku }}
+      {{ product_form.sku.errors }}
+    </p>
+    <p>
+      {{ product_form.name.label_tag }}
+      {{ product_form.name }}
+      {{ product_form.name.errors }}
+    </p>
+    <p>
+      {{ product_form.category.label_tag }}
+      {{ product_form.category }}
+      {{ product_form.category.errors }}
+    </p>
+    <p>
+      {{ product_form.description.label_tag }}
+      {{ product_form.description }}
+      {{ product_form.description.errors }}
+    </p>
+    <p>
+      {{ product_form.has_variant.label_tag }}
+      {{ product_form.has_variant }}
+      {{ product_form.has_variant.errors }}
+    </p>
+  </div>
+
+  <div id="pricing-info">
+    <p>
+      {{ product_form.price.label_tag }}
+      {{ product_form.price }}
+      {{ product_form.price.errors }}
+    </p>
+    <p>
+      {{ product_form.stock.label_tag }}
+      {{ product_form.stock }}
+      {{ product_form.stock.errors }}
+    </p>
+    <p>
+      {{ product_form.weight.label_tag }}
+      {{ product_form.weight }}
+      {{ product_form.weight.errors }}
+    </p>
+  </div>
 
   <div id="variant-section"
       hx-trigger="change from:#id_has_variant"
@@ -16,3 +61,24 @@
 
   <button type="submit">Save</button>
 </form>
+
+<script>
+  document.addEventListener("change", function(e) {
+    if (e.target.id === "id_has_variant") {
+      const pricing = document.getElementById("pricing-info");
+
+      if (pricing) {
+        pricing.classList.toggle("hidden", e.target.checked);
+
+        pricing.querySelectorAll("input")
+               .forEach(el => el.disabled = e.target.checked);
+      }
+    }
+  });
+</script>
+
+<style>
+  .hidden {
+    display: none;
+  }
+</style>
