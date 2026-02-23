@@ -14,6 +14,10 @@
     hx-target="#variant-container"
     hx-swap="beforeend"
     hx-on="htmx:afterRequest:
-        document.getElementById('id_variants-TOTAL_FORMS').value++">
+        let total = document.getElementById('id_variants-TOTAL_FORMS');
+        let formCount = parseInt(total.value);
+        let newForm = document.querySelector('#variant-container .variant-form:last-child');
+        newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formCount);
+        total.value = formCount + 1;">
     + Add Variant
 </button>

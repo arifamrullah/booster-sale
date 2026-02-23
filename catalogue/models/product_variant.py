@@ -68,9 +68,3 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product} + {self.color} + {self.size}"
-    
-    def clean(self):
-        from django.core.exceptions import ValidationError
-
-        if not self.product.has_variant:
-            raise ValidationError("This product doesn't have variants")

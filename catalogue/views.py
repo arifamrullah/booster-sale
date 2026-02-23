@@ -25,7 +25,7 @@ def toggle_variant_section(request):
     return HttpResponse('')
 
 def variant_empty_form(request):
-    formset = ProductVariantFormSet(prefix='variants')
+    formset = ProductVariantFormSet()
     empty_form = formset.empty_form
 
     html = render_to_string(
@@ -42,17 +42,23 @@ def product_list(request):
 def product_create(request):
     if request.method == 'POST':
         product_form = ProductForm(request.POST)
-        variant_formset = ProductVariantFormSet(request.POST)
 
-        if product_form.is_valid() and variant_formset.is_valid():
+        if product_form.is_valid():
             product = product_form.save(commit=False)
 
-            # inject to formset
-            variant_formset.instance = product
+            if product.has_variant:
+                variant_formset = ProductVariantFormSet(request.POST)
 
-            if variant_formset.is_valid():
+                if variant_formset.is_valid():
+                    print("Formset valid")
+                    product.save()
+                    # inject to formset
+                    variant_formset.instance = product
+                    variant_formset.save()
+                    return redirect('products:list')
+            else:
+                # save single product
                 product.save()
-                variant_formset.save()
                 return redirect('products:list')
     else:
         product_form = ProductForm()

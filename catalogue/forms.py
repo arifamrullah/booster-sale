@@ -21,7 +21,7 @@ class ProductForm(forms.ModelForm):
 class ProductVariantForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
-        fields = ['size', 'color', 'sku', 'price', 'stock', 'weight', 'is_active']
+        fields = ['color', 'size', 'sku', 'price', 'stock', 'weight', 'is_active']
 
     def clean_sku(self):
         sku = self.cleaned_data['sku']
@@ -33,24 +33,23 @@ class BaseVariantFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
 
-        # get has_variant from parent form
-        has_variant = self.instance.has_variant
+        if not self.instance.has_variant:
+            return
 
         active_forms = [
             form for form in self.forms
-            if form.cleaned_data and not form.cleaned_data.get('DELETE', False)
+            if form.has_changed() and not form.cleaned_data.get('DELETE', False)
         ]
 
-        if has_variant:
-            if not active_forms:
-                raise ValidationError('Varian can not be empty')
-            
-            sku_set = set()
-            for form in active_forms:
-                sku = form.cleaned_data.get('sku')
-                if sku in sku_set:
-                    raise ValidationError('SKU can not duplicate')
-                sku_set.add(sku)
+        if not active_forms:
+            raise ValidationError('Varian can not be empty')
+        
+        sku_set = set()
+        for form in active_forms:
+            sku = form.cleaned_data.get('sku')
+            if sku in sku_set:
+                raise ValidationError('SKU can not duplicate')
+            sku_set.add(sku)
 
 ProductVariantFormSet = inlineformset_factory(
     Product,
