@@ -4,4 +4,38 @@
 <p>Stock: {{ product.stock }}</p>
 <textarea rows="10" cols="50">{{ product.description }}</textarea>
 <br/><br/>
+
+{% if product.has_variant %}
+
+    <h3>Variants</h3>
+
+    <table>
+        <tr>
+            <th>Color</th>
+            <th>Size</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Weight</th>
+        </tr>
+
+        {% for variant in product.variants.all %}
+        <tr>
+            <td>{{ variant.color }}</td>
+            <td>{{ variant.size }}</td>
+            <td>{{ variant.price }}</td>
+            <td>{{ variant.stock }}</td>
+            <td>{{ variant.weight }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No variants available</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+    
+    <br/><br/>
+
+{% endif %}
+
 <a href="{% url 'products:list' %}">Back</a>
