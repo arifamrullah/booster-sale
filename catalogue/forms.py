@@ -12,6 +12,12 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['sku', 'name', 'category', 'description', 'has_variant', 'price', 'stock', 'weight', 'is_active']
+
+        widgets = {
+            'has_variant': forms.CheckboxInput(attrs={
+                'v-model': 'hasVariant'
+            })
+        }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,3 +1,5 @@
+import re
+
 from django.template.loader import render_to_string
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
@@ -9,65 +11,58 @@ from .models.size import Size
 from .models.product_variant import ProductVariant
 from .forms import ProductForm, ProductVariantForm, ProductVariantFormSet
 
-def toggle_variant_section(request):
-    has_variant = request.GET.get('has_variant') == 'on'
+def parse_variants(post_data):
+    variants = {}
+    pattern = re.compile(r'^variants\[(\d+)\]\[(\w+)\]$')
 
-    if has_variant:
-        formset = ProductVariantFormSet(prefix='variants')
+    for key, value in post_data.items():
+        match = pattern.match(key)
+        if match:
+            index, field = match.groups()
+            variants.setdefault(index, {})[field] = value
 
-        variant_html = render_to_string(
-            'products/partials/variant_section.html',
-            {'variant_formset': formset}
-        )
-
-        return HttpResponse(variant_html)
-    
-    return HttpResponse('')
-
-def variant_empty_form(request):
-    formset = ProductVariantFormSet()
-    empty_form = formset.empty_form
-
-    html = render_to_string(
-        'products/partials/variant_form.html',
-        {'form' : empty_form}
-    )
-
-    return HttpResponse(html)
+    return list(variants.values())
 
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'products/list.html', {'products' : products})
 
 def product_create(request):
+    sizes = Size.objects.all()
+    colors = Color.objects.all()
+
     if request.method == 'POST':
         product_form = ProductForm(request.POST)
 
         if product_form.is_valid():
-            product = product_form.save(commit=False)
+            product = product_form.save()
 
             if product.has_variant:
-                variant_formset = ProductVariantFormSet(request.POST)
+                variants = parse_variants(request.POST)
 
-                if variant_formset.is_valid():
-                    print("Formset valid")
-                    product.save()
-                    # inject to formset
-                    variant_formset.instance = product
-                    variant_formset.save()
-                    return redirect('products:list')
-            else:
-                # save single product
-                product.save()
-                return redirect('products:list')
+                for v in variants:
+                    raw = v.get('is_active')
+
+                    ProductVariant.objects.create(
+                        product=product,
+                        color_id=v['color_id'],
+                        size_id=v['size_id'],
+                        sku=v['sku'],
+                        price=v['price'],
+                        stock=v['stock'],
+                        weight=v['weight'],
+                        is_active=raw in ['1', 'true', 'on', True]
+                    )
+            
+            return redirect('products:list')
     else:
         product_form = ProductForm()
-        variant_formset = ProductVariantFormSet()
         
-    return render(request, 'products/create.html', {
-        'product_form' : product_form,
-        'variant_formset' : variant_formset
-    })
+        return render(request, 'products/create.html', {
+            'product_form' : product_form,
+            'sizes' : sizes,
+            'colors' : colors,
+        })
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)

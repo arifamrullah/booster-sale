@@ -1,84 +1,212 @@
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
-<h1>Product Create</h1>
-<form method="post">
-  {% csrf_token %}
+<div id="product-app">
 
-  <h3>Product</h3>
+  <h1>Product Create</h1>
+  <form method="post">
+    {% csrf_token %}
 
-  <div id="basic-info">
-    <p>
-      {{ product_form.sku.label_tag }}
-      {{ product_form.sku }}
-      {{ product_form.sku.errors }}
-    </p>
-    <p>
-      {{ product_form.name.label_tag }}
-      {{ product_form.name }}
-      {{ product_form.name.errors }}
-    </p>
-    <p>
-      {{ product_form.category.label_tag }}
-      {{ product_form.category }}
-      {{ product_form.category.errors }}
-    </p>
-    <p>
-      {{ product_form.description.label_tag }}
-      {{ product_form.description }}
-      {{ product_form.description.errors }}
-    </p>
-    <p>
-      {{ product_form.has_variant.label_tag }}
-      {{ product_form.has_variant }}
-      {{ product_form.has_variant.errors }}
-    </p>
-  </div>
+    <h3>Product</h3>
 
-  <div id="pricing-info">
-    <p>
-      {{ product_form.price.label_tag }}
-      {{ product_form.price }}
-      {{ product_form.price.errors }}
-    </p>
-    <p>
-      {{ product_form.stock.label_tag }}
-      {{ product_form.stock }}
-      {{ product_form.stock.errors }}
-    </p>
-    <p>
-      {{ product_form.weight.label_tag }}
-      {{ product_form.weight }}
-      {{ product_form.weight.errors }}
-    </p>
-  </div>
+    <div id="basic-info">
+      <p>
+        {{ product_form.sku.label_tag }}
+        {{ product_form.sku }}
+        {{ product_form.sku.errors }}
+      </p>
+      <p>
+        {{ product_form.name.label_tag }}
+        {{ product_form.name }}
+        {{ product_form.name.errors }}
+      </p>
+      <p>
+        {{ product_form.category.label_tag }}
+        {{ product_form.category }}
+        {{ product_form.category.errors }}
+      </p>
+      <p>
+        {{ product_form.description.label_tag }}
+        {{ product_form.description }}
+        {{ product_form.description.errors }}
+      </p>
+      <p>
+        {{ product_form.has_variant.label_tag }}
+        {{ product_form.has_variant }}
+        {{ product_form.has_variant.errors }}
+      </p>
+    </div>
 
-  <div id="variant-section"
-      hx-trigger="change from:#id_has_variant"
-      hx-get="{% url 'products:toggle_variant_section' %}"
-      hx-target="#variant-section"
-      hx-include="#id_has_variant">
-  </div>
+    <div id="pricing-info" v-if="!hasVariant">
+      <p>
+        {{ product_form.price.label_tag }}
+        {{ product_form.price }}
+        {{ product_form.price.errors }}
+      </p>
+      <p>
+        {{ product_form.stock.label_tag }}
+        {{ product_form.stock }}
+        {{ product_form.stock.errors }}
+      </p>
+      <p>
+        {{ product_form.weight.label_tag }}
+        {{ product_form.weight }}
+        {{ product_form.weight.errors }}
+      </p>
+    </div>
 
-  <button type="submit">Save</button>
-</form>
+
+    <div v-if="hasVariant">
+
+      <h3>Variants</h3>
+  
+      <div v-for="(variant, index) in variants"
+           :key="variant.uid"
+           class="variant-form">
+
+        <p>
+          <label>Color:</label>
+          <select :name="`variants[${index}][color_id]`"
+                  v-model="variant.color_id"
+                  required>
+            <option value="">-- Color --</option>
+            <option v-for="c in colors" :value="c.id" v-text="c.name"></option>
+          </select>
+        </p>
+
+        <p>
+          <label>Size:</label>
+          <select :name="`variants[${index}][size_id]`"
+                  v-model="variant.size_id"
+                  required>
+            <option value="">-- Size --</option>
+            <option v-for="s in sizes" :value="s.id" v-text="s.code"></option>
+          </select>
+        </p>
+        
+        <p>
+          <label>SKU:</label>
+          <input type="text"
+                 :name="`variants[${index}][sku]`"
+                 v-model="variant.sku">
+        </p>
+        
+        <p>
+          <label>Price:</label>
+          <input type="number"
+                 :name="`variants[${index}][price]`"
+                 v-model="variant.price">
+        </p>
+        
+        <p>
+          <label>Stock:</label>
+          <input type="number"
+                 :name="`variants[${index}][stock]`"
+                 v-model="variant.stock">
+        </p>
+        
+        <p>
+          <label>Weight:</label>
+          <input type="number"
+                 :name="`variants[${index}][weight]`"
+                 v-model="variant.weight">
+        </p>
+        
+        <input
+          type="hidden"
+          :name="`variants[${index}][is_active]`"
+          value="0"
+        >
+
+        <p>
+          <label>Is Active:</label>
+          <input type="checkbox"
+                 :name="`variants[${index}][is_active]`"
+                 v-model="variant.is_active"
+                 :true-value="1"
+                 :false-value="0">
+        </p>
+
+        <button type="button"
+                @click="removeVariant(index)">
+          Remove
+        </button>
+
+      </div>
+  
+      <button type="button"
+              @click="addVariant">
+        + Add Variant
+      </button>
+
+    </div>
+
+    <button type="submit">Save</button>
+  </form>
+
+</div>
 
 <script>
-  document.addEventListener("change", function(e) {
-    if (e.target.id === "id_has_variant") {
-      const pricing = document.getElementById("pricing-info");
 
-      if (pricing) {
-        pricing.classList.toggle("hidden", e.target.checked);
+  window.variantOptions = {
+    sizes: [
+      {% for s in sizes %}
+        { id: {{ s.id }}, code: "{{ s.code }}" },
+      {% endfor %}
+    ],
+    colors: [
+      {% for c in colors %}
+        { id: {{ c.id }}, name: "{{ c.name }}" },
+      {% endfor %}
+    ],
+  }
 
-        pricing.querySelectorAll("input")
-               .forEach(el => el.disabled = e.target.checked);
+  const { createApp } = Vue
+
+  createApp({
+    data() {
+      return {
+        hasVariant: false,
+        variants: [],
+        sizes: window.variantOptions?.sizes || [],
+        colors: window.variantOptions?.colors || []
+      }
+    },
+
+    mounted() {
+      console.log('sizes:', this.sizes)
+      console.log('colors:', this.colors)
+    },
+
+    watch: {
+      hasVariant(newVal) {
+        if (newVal && this.variants.length === 0) {
+          this.addVariant()
+        }
+
+        if (!newVal) {
+          this.variants = []
+        }
+      }
+    },
+
+    methods: {
+      addVariant() {
+        this.variants.push({
+          uid: Date.now() + Math.random(),
+          color_id: '',
+          size_id: '',
+          sku: '',
+          price: '',
+          stock: '',
+          weight: '',
+          is_active: 1
+        })
+      },
+
+      removeVariant(index) {
+        this.variants.splice(index, 1)
       }
     }
-  });
+  }).mount('#product-app')
+  
 </script>
-
-<style>
-  .hidden {
-    display: none;
-  }
-</style>
